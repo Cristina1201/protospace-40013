@@ -1,4 +1,8 @@
 class PrototypesController < ApplicationController
+  before_action :set_prototype, except: [:index, :new, :create]
+  before_action :authenticate_user!, except: [:index, :show]
+  before_action :contributor_confirmation, only: [:edit, :update, :destroy]
+
   def index
     @prototypes = Prototype.includes(:user)
   end
@@ -16,6 +20,32 @@ class PrototypesController < ApplicationController
     end
   end
 
+  def show
+    @comment = Comment.new
+    @comments = @prototype.comments
+  end
+
+  def edit
+    prototype = Prototype.find(params[:id])
+      unless user_signed_in? 
+        redirect_to root_path
+      end
+  end
+
+  def update
+    if @prototype.update(prototype_params)
+      redirect_to prototype_path(@prototype)
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    prototype = Prototype.find(params[:id])
+    prototype.destroy
+    redirect_to root_path
+  end
+
   private
 
   def prototype_params
@@ -29,5 +59,8 @@ class PrototypesController < ApplicationController
   def contributor_confirmation
     redirect_to root_path unless current_user == @prototype.user
   end
-
 end
+
+
+
+ 
